@@ -17,6 +17,12 @@ public class MainDao {
 
         User userFromDb = userDao.read(1);
 
+        userFromDb.setUserName("SuperGosc");
+        //userFromDb.setPassword("noweHaslo");
+        userDao.update(userFromDb);
+
+        System.out.println(userFromDb);
+        userFromDb = userDao.read(1);
         System.out.println(userFromDb);
     }
 }
