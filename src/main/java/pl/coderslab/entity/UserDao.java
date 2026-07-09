@@ -10,8 +10,7 @@ public class UserDao {
             "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
     private static final String SELECT_USER_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
 
-    private static final String UPDATE_USER_WITH_PASS_QUERY = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
-    private static final String UPDATE_USER_WITHOUT_PASS_QUERY = "UPDATE users SET username = ?, email = ? WHERE id = ?";
+    private static final String UPDATE_USER_QUERY = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
 
     public User create(User user) {
         try (Connection conn = DbUtil.getConnection()) {
@@ -21,7 +20,7 @@ public class UserDao {
             statement.setString(2, user.getEmail());
             statement.setString(3, hashPassword(user.getPassword()));
             statement.executeUpdate();
-            //Pobieramy wstawiony do bazy identyfikator, a następnie ustawiamy id obiektu user.
+
             ResultSet resultSet = statement.getGeneratedKeys();
             if (resultSet.next()) {
                 user.setId(resultSet.getInt(1));
@@ -34,9 +33,10 @@ public class UserDao {
     }
 
     public User read(int userId) {
-        try (Connection conn = DbUtil.getConnection()) {
-            PreparedStatement statement =
-                    conn.prepareStatement(SELECT_USER_BY_ID_QUERY);
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement statement =
+                     conn.prepareStatement(SELECT_USER_BY_ID_QUERY)) {
+
             statement.setInt(1, userId);
 
             ResultSet resultSet = statement.executeQuery();
@@ -57,37 +57,32 @@ public class UserDao {
     }
 
     public void update(User user) {
-        try (Connection conn = DbUtil.getConnection()) {
-            PreparedStatement findStatement =
-                    conn.prepareStatement(SELECT_USER_BY_ID_QUERY);
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement findStatement =
+                     conn.prepareStatement(SELECT_USER_BY_ID_QUERY);
+            PreparedStatement updateStatement =
+                     conn.prepareStatement(UPDATE_USER_QUERY)) {
+
             findStatement.setInt(1, user.getId());
             ResultSet resultSet = findStatement.executeQuery();
 
-            String dbPassword;
-            if(resultSet.next()){
-                dbPassword = resultSet.getString("password");
-            }else{
+            if(!resultSet.next()){
+                System.out.println("Błąd! Nie udało się pobrać danch.");
                 return;
             }
 
-            if (user.getPassword().equals(dbPassword)) {
-                System.out.println("Zgadza się");
-                PreparedStatement updateStatement =
-                        conn.prepareStatement(UPDATE_USER_WITHOUT_PASS_QUERY);
-                updateStatement.setString(1, user.getUserName());
-                updateStatement.setString(2, user.getEmail());
-                updateStatement.setInt(3, user.getId());
-                updateStatement.executeUpdate();
-            } else {
-                PreparedStatement updateStatement =
-                        conn.prepareStatement(UPDATE_USER_WITH_PASS_QUERY);
-                updateStatement.setString(1, user.getUserName());
-                updateStatement.setString(2, user.getEmail());
-                updateStatement.setString(3, hashPassword(user.getPassword()));
-                updateStatement.setInt(4, user.getId());
-                updateStatement.executeUpdate();
-            }
+            String dbPassword = resultSet.getString("password");
 
+            String passwordToSave = (user.getPassword().equals(dbPassword))
+                    ? dbPassword
+                    : hashPassword(user.getPassword());
+
+
+            updateStatement.setString(1, user.getUserName());
+            updateStatement.setString(2, user.getEmail());
+            updateStatement.setString(3, passwordToSave);
+            updateStatement.setInt(4, user.getId());
+            updateStatement.executeUpdate();
 
         } catch (SQLException e) {
             e.printStackTrace();
