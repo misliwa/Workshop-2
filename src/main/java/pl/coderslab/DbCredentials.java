@@ -22,7 +22,7 @@ public class DbCredentials {
             DB_PASS = properties.getProperty("db.password");
 
         }catch (FileNotFoundException e){
-            System.out.printf("File not found. Create file %s accordingly to its example%n", FILE_PATH);
+            System.out.printf("File not found. Create file %s accordingly to its example", FILE_PATH);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
