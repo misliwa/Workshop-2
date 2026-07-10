@@ -9,6 +9,10 @@ public class MainDao {
 
         UserDao userDao = new UserDao();
 
-        userDao.delete(3);
+        User[] users = userDao.findAll();
+
+        for(User user : users){
+            System.out.println(user);
+        }
     }
 }

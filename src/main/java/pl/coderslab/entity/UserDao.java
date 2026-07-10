@@ -4,11 +4,15 @@ import org.mindrot.jbcrypt.BCrypt;
 import pl.coderslab.DbUtil;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDao {
     private static final String CREATE_USER_QUERY =
             "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
     private static final String SELECT_USER_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
+
+    private static final String SELECT_ALL_USERS_QUERY = "SELECT * FROM users";
 
     private static final String UPDATE_USER_QUERY = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
 
@@ -44,12 +48,7 @@ public class UserDao {
             ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                int resultId = resultSet.getInt("id");
-                String userName = resultSet.getString("username");
-                String email = resultSet.getString("email");
-                String password = resultSet.getString("password");
-
-                return new User(resultId, userName, email, password);
+                return getUserFromResultSet(resultSet);
             }
             return null;
         } catch (SQLException e) {
@@ -102,6 +101,34 @@ public class UserDao {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public User[] findAll(){
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement statement =
+                     conn.prepareStatement(SELECT_ALL_USERS_QUERY)) {
+
+            ResultSet resultSet = statement.executeQuery();
+            List<User> userList = new ArrayList<>();
+
+            while(resultSet.next()) {
+                User user = getUserFromResultSet(resultSet);
+                userList.add(user);
+            }
+            return userList.toArray(User[]::new);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new User[0];
+        }
+    }
+
+    private User getUserFromResultSet(ResultSet resultSet) throws SQLException{
+        int resultId = resultSet.getInt("id");
+        String userName = resultSet.getString("username");
+        String email = resultSet.getString("email");
+        String password = resultSet.getString("password");
+
+        return new User(resultId, userName, email, password);
     }
 
 
