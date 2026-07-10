@@ -12,6 +12,8 @@ public class UserDao {
 
     private static final String UPDATE_USER_QUERY = "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
 
+    private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE id = ?";
+
     public User create(User user) {
         try (Connection conn = DbUtil.getConnection()) {
             PreparedStatement statement =
@@ -89,8 +91,21 @@ public class UserDao {
         }
     }
 
+    public void delete(int userId) {
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement statement =
+                     conn.prepareStatement(DELETE_USER_QUERY)) {
 
-    public String hashPassword(String password) {
+            statement.setInt(1, userId);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+        public String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 

@@ -7,22 +7,8 @@ public class MainDao {
     static void main() {
         DbCredentials.readDatabaseCredentials();
 
-        User user = new User();
-        user.setUserName("uzytkownik");
-        user.setEmail("user@usermail.com");
-        user.setPassword("megaTrudneHaslo");
-
         UserDao userDao = new UserDao();
-        //user = userDao.create(user);
 
-        User userFromDb = userDao.read(1);
-
-        userFromDb.setUserName("SuperGosc");
-        //userFromDb.setPassword("noweHaslo");
-        userDao.update(userFromDb);
-
-        System.out.println(userFromDb);
-        userFromDb = userDao.read(1);
-        System.out.println(userFromDb);
+        userDao.delete(3);
     }
 }
